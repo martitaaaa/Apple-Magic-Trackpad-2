@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+         html, body{
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+         }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas"></canvas>
+
+    <!-- Trackpad resolution: 7612x5066 -->
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        canvas.width = document.body.clientWidth
+        canvas.height = document.body.clientHeight
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'black'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+        ctx.font = '25px Helvetica';
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+
+        const radius = 20; // Fixed radius of the circle
+
+        // Function to draw the circle at the current position
+        function drawCircle(x, y, radius) {
+            // ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            ctx.beginPath();
+            // ctx.arc(x+(canvas.width/2), y+(canvas.height/2), radius, 0, 2 * Math.PI);
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white'
+            // ctx.fillStyle = "#013211"
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawText(x, y, text){
+            ctx.fillStyle = 'black'
+            ctx.fillText(text, x, y)
+        }
+
+        function map (number, inMin, inMax, outMin, outMax) {
+            return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+        }
+
+        // Connect to the WebSocket server
+        const socket = new WebSocket('ws://350z.local:8000');
+
+        // Handle incoming WebSocket messages
+        socket.addEventListener('message', (event) => {
+            // Split the message by space and parse the numbers
+            // console.log(JSON.parse(event.data))
+            // const [newX, newY] = (event.data).split(' ').map(parseFloat);
+
+
+            const data = JSON.parse(event.data)
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            
+            for (let i = 0; i<Object.keys(data).length; i++){
+                let X = map(data[i][0], -3678, 3934, 0, canvas.width)
+                let Y = map(data[i][1], -2478, 2587, 0, canvas.height)
+    
+                // console.log(X, Y)
+                // Redraw the circle at the new position
+                drawCircle(X, Y, data[i][2]/10);
+                drawText(X, Y, i);
+            }
+        });
+
+        // Initial drawing
+        drawCircle(canvas.width/2,canvas.height/2);
+    </script>
+</body>
+</html>
